@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+  php:
+    container_name: php-native
+    build:
+      context: php
+      dockerfile: Dockerfile
+    volumes:
+      - './../native:/var/www/html'
+    depends_on:
+        - mysql
+    environment:
+      XDEBUG_CONFIG: remote_host=host.docker.internal
+      PHP_IDE_CONFIG: "serverName=docker"
+    networks:
+      - native_network
+
+  nginx:
+    container_name: nginx-native
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    volumes:
+      - './../native:/var/www/html'
+    ports:
+      - "80:80"
+    links:
+      - php
+    depends_on:
+      - php
+    networks:
+      - native_network
+
+  mysql:
+    container_name: mysql-native
+    platform: linux/x86_64
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=native
+    networks:
+      - native_network
+
+networks:
+  native_network:
